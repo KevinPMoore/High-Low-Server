@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
 const validateBearerToken = require('./validate-bearer-token');
 const errorHandler = require('./error-handler');
+//put routers here
 
 const app = express();
 
