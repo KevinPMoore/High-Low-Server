@@ -8,7 +8,7 @@ const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
 const validateBearerToken = require('./validate-bearer-token');
 const errorHandler = require('./error-handler');
-//put routers here
+const usersRouter = require('./users/users-router');
 
 const app = express();
 
@@ -20,7 +20,8 @@ app.use(morgan(morganOption));
 app.use(cors());
 app.use(helmet());
 app.use(validateBearerToken);
-//put routers here
+
+app.use('/api/users', usersRouter);
 
 //this needs to be the last piece of middleware
 app.use(errorHandler);
