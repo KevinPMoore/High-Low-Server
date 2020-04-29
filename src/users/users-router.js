@@ -13,7 +13,7 @@ usersRouter
   .get((req, res, next) => {
     UsersService.getAllUsers(req.app.get('db'))
       .then(users => {
-        res.json(UsersService.serializeUser(users));
+        res.json(users.map(user => UsersService.serializeUser(user)));
       })
       .catch(next);
   })
