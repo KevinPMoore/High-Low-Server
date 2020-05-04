@@ -3,7 +3,7 @@
 const express = require('express');
 const path = require('path');
 const UsersService = require('./users-service');
-const { requireAuth } = require('../middleware/jwt-auth');
+//const { requireAuth } = require('../middleware/jwt-auth');
 
 const usersRouter = express.Router();
 const jsonBodyParser = express.json();
@@ -62,12 +62,55 @@ usersRouter
 
 usersRouter
   .route('/:user_id')
-  .all(requireAuth)
-  .all(checkUserExists)
+  //.all(requireAuth)
+  //.all(checkUserExists)
   .get((req, res) => {
-      res.json(UsersService.serializeUser(res.user))
+    res.json(UsersService.serializeUser(res.user));
+  })
+  .delete((req, res, next) => {
+    UsersService.deleteUser(
+      req.app.get('db'),
+      req.params.user_id
+    )
+      .then(numRowsAffected => {
+        res.status(204).end();
+      })
+      .catch(next);
+  })
+  .patch(jsonBodyParser, (req, res, next) => {
+    const { user_name, bank } = req.body;
+    const userToUpdate = { user_name, bank };
+    const expectedKeys = ['user_name', 'bank'];
+
+    for (let i = 0; i < expectedKeys.length; i ++) {
+      if(!userToUpdate.hasOwnProperty(expectedKeys[i])) {
+        return res.status(400).json({
+          error: { message: `Request body must contain '${expectedKeys}'`}
+        });
+      }
+    }
+
+    const numberOfValues = Object.values(userToUpdate).filter(Boolean).length;
+    if (numberOfValues === 0)
+      return res.status(400).json({
+        error: {
+          message: 'Request body must contain \'user_name\' and \'bank\''
+        }
+      });
+
+    const updatedUser = { user_name: userToUpdate.user_name, bank: userToUpdate.bank };
+    UsersService.updateUser(
+      req.app.get('db'),
+      req.params.user_id,
+      updatedUser
+    )
+      .then(numRowsAffected => {
+        res.status(204).end();
+      })
+      .catch(next);
   });
 
+/*
 async function checkUserExists (req, res, next) {
   try {
     const user = await UsersService.getUserById(
@@ -85,5 +128,6 @@ async function checkUserExists (req, res, next) {
     next(error);
   }
 };
+*/
 
 module.exports = usersRouter;
