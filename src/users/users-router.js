@@ -3,7 +3,7 @@
 const express = require('express');
 const path = require('path');
 const UsersService = require('./users-service');
-//const { requireAuth } = require('../middleware/jwt-auth');
+const { requireAuth } = require('../middleware/jwt-auth');
 
 const usersRouter = express.Router();
 const jsonBodyParser = express.json();
@@ -62,8 +62,8 @@ usersRouter
 
 usersRouter
   .route('/:user_id')
-  //.all(requireAuth)
-  //.all(checkUserExists)
+  .all(requireAuth)
+  .all(checkUserExists)
   .get((req, res) => {
     res.json(UsersService.serializeUser(res.user));
   })
@@ -110,7 +110,6 @@ usersRouter
       .catch(next);
   });
 
-/*
 async function checkUserExists (req, res, next) {
   try {
     const user = await UsersService.getUserById(
@@ -128,6 +127,5 @@ async function checkUserExists (req, res, next) {
     next(error);
   }
 };
-*/
 
 module.exports = usersRouter;

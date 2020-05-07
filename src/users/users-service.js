@@ -12,7 +12,8 @@ const UsersService = {
         'hl.id',
         'hl.user_name',
         'hl.bank',
-        'hl.administrator'
+        'hl.administrator',
+        'hl.password'
       );
   },
   getUserById(db, id) {
