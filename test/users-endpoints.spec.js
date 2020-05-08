@@ -225,7 +225,7 @@ describe('Users Endpoints', function() {
           })
           .expect(res => 
             db
-              .from('users')
+              .from('highlow_users')
               .select('*')
               .where({ id: res.body.id })
               .first()
