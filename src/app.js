@@ -21,7 +21,7 @@ app.use(cors({ origin: CLIENT_ORIGIN }));
 app.use(helmet());
 
 app.use('/api/users/', usersRouter);
-app.use('/api/login', authRouter);
+app.use('/api/auth/', authRouter);
 
 //this needs to be the last piece of middleware
 app.use(function errorHandler(error, req, res, next) {

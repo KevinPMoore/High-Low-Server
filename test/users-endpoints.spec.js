@@ -103,14 +103,148 @@ describe('Users Endpoints', function() {
       });
 
       it('removes XSS attack content', () => {
-        //xss user here and expect statement
+        return supertest(app)
+          .get(`/api/users/${maliciousUser.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200)
+          .expect(res => {
+            expect(res.body.user_name).to.eql(expectedUser.user_name);
+            expect(res.body.password).to.eql(expectedUser.content);
+          });
       });
     });
   });
 
-  //DESCRIBE POST
+  describe('POST /api/users', () => {
+    context('User validation', () => {
+      beforeEach('insert users', () =>
+        helpers.seedUsers(db, testUsers)
+      );
 
-  //DESCRIBE PATCH/:user_id
+      const requiredFields = ['user_name', 'password'];
 
-  //DESCRIBE DELETE/:user_id
+      requiredFields.forEach(field => {
+        const registerAttemptBody ={
+          user_name: 'test user_name',
+          password: 'test password',
+        };
+
+        it(`responds with 400 required error when '${field}' is missing`, () => {
+          delete registerAttemptBody[field];
+
+          return supertest(app)
+            .post('/api/users')
+            .send(registerAttemptBody)
+            .expect(400, {
+              error: `Missing '${field}' in request body`,
+            });
+        });
+      });
+
+      it('responds 400 \'Password must be longer than 8 characters\' when empty password', () => {
+        const userShortPassword = {
+          user_name: 'test user_name',
+          password: '1234567',
+        };
+        return supertest(app)
+          .post('/api/users')
+          .send(userShortPassword)
+          .expect(400, { error: 'Password must be longer than 8 characters' });
+      });
+
+      it('responds 400 \'Password must be less than 72 characters\' when long password', () => {
+        const userLongPassword = {
+          user_name: 'test user_name',
+          password: '*'.repeat(73),
+        };
+        return supertest(app)
+          .post('/api/users')
+          .send(userLongPassword)
+          .expect(400, { error: 'Password must be less than 72 characters' });
+      });
+        
+      it('responds 400 error when password starts with spaces', () => {
+        const userPasswordStartsSpaces = {
+          user_name: 'test user_name',
+          password: ' 1Aa!2Bb@',
+        };
+        return supertest(app)
+          .post('/api/users')
+          .send(userPasswordStartsSpaces)
+          .expect(400, { error: 'Password must not start or end with empty spaces' });
+      });
+
+      it('responds 400 error when password ends with spaces', () => {
+        const userPasswordEndsSpaces = {
+          user_name: 'test user_name',
+          password: '1Aa!2Bb@ ',
+        };
+        return supertest(app)
+          .post('/api/users')
+          .send(userPasswordEndsSpaces)
+          .expect(400, { error: 'Password must not start or end with empty spaces' });
+      });
+
+      it('responds 400 error when password isn\'t complex enough', () => {
+        const userPasswordNotComplex = {
+          user_name: 'test user_name',
+          password: '11AAaabb',
+        };
+        return supertest(app)
+          .post('/api/users')
+          .send(userPasswordNotComplex)
+          .expect(400, { error: 'Password must contain 1 upper case, lower case, number and special character' });
+      });
+
+      it('responds 400 \'User name already taken\' when user_name isn\'t unique', () => {
+        const duplicateUser = {
+          user_name: testUser.user_name,
+          password: '11AAaa!!',
+        };
+        return supertest(app)
+          .post('/api/users')
+          .send(duplicateUser)
+          .expect(400, { error: 'Username already taken' });
+      });
+    });
+
+    context('Happy path', () => {
+      it('responds 201, serialized user, storing bcrypted password', () => {
+        const newUser = {
+          user_name: 'test user_name',
+          password: '11AAaa!!',
+        };
+        return supertest(app)
+          .post('/api/users')
+          .send(newUser)
+          .expect(201)
+          .expect(res => {
+            expect(res.body).to.have.property('id');
+            expect(res.body.user_name).to.eql(newUser.user_name);
+            expect(res.body.password).to.not.have.property(newUser.password);
+          })
+          .expect(res => 
+            db
+              .from('users')
+              .select('*')
+              .where({ id: res.body.id })
+              .first()
+              .then(row => {
+                expect(row.user_name).to.eql(newUser.user_name);
+                expect(row.bank).to.eql(100);
+                expect(row.admin).to.eql(false);
+
+                return bcrypt.compare(newUser.password, row.password);
+              })
+              .then(compareMatch => {
+                expect(compareMatch).to.be.true;
+              })
+          );
+      });
+    });
+  });
 });
+
+//DESCRIBE PATCH/:user_id
+
+//DESCRIBE DELETE/:user_id
