@@ -42,7 +42,7 @@ const UsersService = {
   updateUser(db, id, newUserFields) {
     return db('highlow_users')
       .where({ id })
-      .update(newUserFields)
+      .update(newUserFields);
   },
   validatePassword(password) {
     if (password.length < 8) {
