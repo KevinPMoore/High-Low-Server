@@ -243,8 +243,63 @@ describe('Users Endpoints', function() {
       });
     });
   });
+
+  describe('Delete /api/users/:user_id', () => {
+    context('Given no users', () => {
+      it('responds with 404', () => {
+        const userId = 123456;
+        return supertest(app)
+          .delete(`/api/users/${userId}`)
+          .expect(404, { error: { message: 'User does not exist' } });
+      });
+    });
+
+    context('Given there are users in the database', () => {
+      const testUsers = helpers.makeUsersArray();
+
+      beforeEach('insert users', () => {
+        return db
+          .into('highlow_users')
+          .insert(testUsers);
+      });
+
+      it('responds 204 and removes the user', () => {
+        const idToRemove = 2;
+        const expectedUsers = testUsers.filter(user => user.id !== idToRemove);
+        return supertest(app)
+          .delete(`/api/users/${idToRemove}`)
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get('/api/users')
+              .expect(expectedUsers)  
+          );
+      });
+    });
+  });
+
+  describe('PATCH /api/users/:user_id', () => {
+    context('Given no users', () => {
+      it('responds with 404', () => {
+        const userId = 123456;
+        return supertest(app)
+          .delete(`/api/users/${userId}`)
+          .expect(404, { error: { message: 'User does not exist'} });
+      });
+    });
+
+    context('Given there are users in the database', () => {
+      const testUsers = helpers.makeUsersArray();
+
+      beforeEach('insert users', () => {
+        return db
+          .into('highlow_users')
+          .insert(testUsers);
+      });
+
+      it('responds with 204 and updates the user', () => {
+        //do this part
+      });
+    });
+  });
 });
-
-//DESCRIBE PATCH/:user_id
-
-//DESCRIBE DELETE/:user_id
