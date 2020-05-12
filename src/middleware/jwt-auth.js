@@ -17,7 +17,7 @@ function requireAuth(req, res, next) {
 
     AuthService.getUserWithId(
       req.app.get('db'),
-      payload.sub
+      payload.user_id
     )
       .then(user => {
         if (!user)
