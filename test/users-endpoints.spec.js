@@ -34,13 +34,17 @@ describe('Users Endpoints', function() {
     });
 
     context('Given there are users', () => {
+      const expectedUsers = testUsers.map(user => ({
+        ...user,
+        password: bcrypt.hashSync(user.password, 1)
+      }));
       beforeEach('insert users', () => 
         helpers.seedUsers(db, testUsers)
       );
       it('responds with 200 and all of the users', () => {
         return supertest(app)
           .get('/api/users')
-          .expect(200, testUsers);
+          .expect(200, expectedUsers);
       });
     });
 
@@ -60,7 +64,7 @@ describe('Users Endpoints', function() {
           .expect(200)
           .expect(res => {
             expect(res.body[0].user_name).to.eql(expectedUser.user_name);
-            expect(res.body[0].password).to.eql(expectedUser.password);
+            expect(bcrypt.hashSync(res.body[0].password, 1)).to.eql(bcrypt.hashSync(expectedUser.password, 1));
           });
       });
     });
