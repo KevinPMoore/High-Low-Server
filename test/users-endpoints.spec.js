@@ -298,7 +298,64 @@ describe('Users Endpoints', function() {
       });
 
       it('responds with 204 and updates the user', () => {
-        //do this part
+        const idToUpdate = 2;
+        const updatedUser = {
+          user_name: 'NewUserName',
+          password: 'N3wPassword!',
+          bank: 200
+        };
+
+        const expectedUser = {
+          //...testUsers[idToUpdate - 1],
+          //...updatedUser
+        };
+        return supertest(app)
+          .patch(`/api/users/${idToUpdate}`)
+          .send(updatedUser)
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get(`/api/notes/${idToUpdate}`)
+              .expect(expectedUser)  
+          );
+      });
+
+      it('responds with 400 when non-required fields are supplied', () => {
+        const idToUpdate = 2;
+        return supertest(app)
+          .patch(`/api/users/${idToUpdate}`)
+          .send({ irrelevantField: 'foo' })
+          .expect(400, {
+            error: {
+              message: 'Request body must contain \'user_name\' and \'bank\''
+            }
+          });
+      });
+
+      it('responds with 204 when updating only a subset of fields', () => {
+        const idToUpdate = 2;
+        const updatedUser = {
+          user_name: 'NewUserName',
+          password: 'N3wPassword!',
+          bank: 200
+        };
+        const expectedUser = {
+          ...testUsers[idToUpdate - 1],
+          ...updatedUser
+        };
+
+        return supertest(app)
+          .patch(`/api/users/${idToUpdate}`)
+          .send({
+            ...updatedUser,
+            fieldToIgnore: 'should not be in the GET response'
+          })
+          .expect(204)
+          .then(res => 
+            supertest(app)
+              .get(`/api/notes/${idToUpdate}`)
+              .expect(expectedUser)  
+          );
       });
     });
   });
