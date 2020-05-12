@@ -11,9 +11,9 @@ const UsersService = {
       .select(
         'hl.id',
         'hl.user_name',
+        'hl.password',
         'hl.bank',
-        'hl.administrator',
-        'hl.password'
+        'hl.administrator'
       );
   },
   getUserById(db, id) {
@@ -66,6 +66,7 @@ const UsersService = {
     return {
       id: user.id,
       user_name: xss(user.user_name),
+      password: xss(user.password),
       bank: user.bank,
       administrator: user.administrator,
     };

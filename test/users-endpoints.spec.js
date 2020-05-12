@@ -1,5 +1,4 @@
 'use strict';
-
 const knex = require('knex');
 const bcrypt = require('bcryptjs');
 const app = require('../src/app');
@@ -250,6 +249,7 @@ describe('Users Endpoints', function() {
         const userId = 123456;
         return supertest(app)
           .delete(`/api/users/${userId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
           .expect(404, { error: { message: 'User does not exist' } });
       });
     });
@@ -268,6 +268,7 @@ describe('Users Endpoints', function() {
         const expectedUsers = testUsers.filter(user => user.id !== idToRemove);
         return supertest(app)
           .delete(`/api/users/${idToRemove}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
           .expect(204)
           .then(res =>
             supertest(app)
@@ -284,6 +285,7 @@ describe('Users Endpoints', function() {
         const userId = 123456;
         return supertest(app)
           .delete(`/api/users/${userId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
           .expect(404, { error: { message: 'User does not exist'} });
       });
     });
@@ -306,11 +308,12 @@ describe('Users Endpoints', function() {
         };
 
         const expectedUser = {
-          //...testUsers[idToUpdate - 1],
-          //...updatedUser
+          ...testUsers[idToUpdate - 1],
+          ...updatedUser
         };
         return supertest(app)
           .patch(`/api/users/${idToUpdate}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
           .send(updatedUser)
           .expect(204)
           .then(res =>
@@ -324,6 +327,7 @@ describe('Users Endpoints', function() {
         const idToUpdate = 2;
         return supertest(app)
           .patch(`/api/users/${idToUpdate}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
           .send({ irrelevantField: 'foo' })
           .expect(400, {
             error: {
@@ -346,6 +350,7 @@ describe('Users Endpoints', function() {
 
         return supertest(app)
           .patch(`/api/users/${idToUpdate}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
           .send({
             ...updatedUser,
             fieldToIgnore: 'should not be in the GET response'
