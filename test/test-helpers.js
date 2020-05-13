@@ -79,11 +79,11 @@ function seedMaliciousUser(db, maliciousUser) {
 }
 
 function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
-  const token = jwt.sign({ id: user.id }, secret, {
+  console.log('user.user_name is', user.user_name)
+  const token = jwt.sign({ user_id: user.id }, secret, {
     subject: user.user_name,
     algorithm: 'HS256'
   });
-  console.log(token)
   return `Bearer ${token}`;
 }
 

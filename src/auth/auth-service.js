@@ -5,6 +5,7 @@ const config = require('../config');
 
 const AuthService = {
   getUserWithId(db, id) {
+    console.log('getUserWithId', id);
     return db('highlow_users')
       .where({ id })
       .first();

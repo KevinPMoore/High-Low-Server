@@ -34,17 +34,20 @@ describe('Users Endpoints', function() {
     });
 
     context('Given there are users', () => {
-      const expectedUsers = testUsers.map(user => ({
-        ...user,
-        password: bcrypt.hashSync(user.password, 1)
-      }));
       beforeEach('insert users', () => 
         helpers.seedUsers(db, testUsers)
       );
       it('responds with 200 and all of the users', () => {
         return supertest(app)
           .get('/api/users')
-          .expect(200, expectedUsers);
+          .expect(200)
+          .expect( (res) => {
+            let allPasswordsMatch = res.body.every((user, index) => {
+              return bcrypt.compareSync(testUsers[index].password, user.password)
+            })
+            expect(allPasswordsMatch).to.eql(true)
+            expect(res.body.length).to.eql(testUsers.length)
+          })
       });
     });
 
@@ -64,7 +67,7 @@ describe('Users Endpoints', function() {
           .expect(200)
           .expect(res => {
             expect(res.body[0].user_name).to.eql(expectedUser.user_name);
-            expect(bcrypt.hashSync(res.body[0].password, 1)).to.eql(bcrypt.hashSync(expectedUser.password, 1));
+            expect(bcrypt.compareSync(maliciousUser.password, res.body[0].password)).to.be.true;
           });
       });
     });
@@ -91,11 +94,18 @@ describe('Users Endpoints', function() {
 
       it('responds with 200 and the specified user', () => {
         const userId = 2;
-        const expectedUser = helpers.makeUsersArray([userId - 1]);
+        const expectedUser = helpers.makeUsersArray()[userId - 1];
         return supertest(app)
           .get(`/api/users/${userId}`)
           .set('Authorization', helpers.makeAuthHeader(expectedUser))
-          .expect(404, { error: 'User does not exist' });
+          .expect(200)
+          .expect( res => {
+            expect(res.body.id).to.eql(expectedUser.id)
+            expect(res.body.user_name).to.eql(expectedUser.user_name)
+            expect(res.body.bank).to.eql(expectedUser.bank)
+            expect(res.body.admin).to.eql(expectedUser.admin)
+            expect(bcrypt.compareSync(expectedUser.password, res.body.password)).to.be.true
+        })
       });
     });
 
@@ -108,11 +118,11 @@ describe('Users Endpoints', function() {
       it('removes XSS attack content', () => {
         return supertest(app)
           .get(`/api/users/${maliciousUser.id}`)
-          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .set('Authorization', helpers.makeAuthHeader(maliciousUser))
           .expect(200)
           .expect(res => {
             expect(res.body.user_name).to.eql(expectedUser.user_name);
-            expect(res.body.password).to.eql(expectedUser.content);
+            expect(bcrypt.compareSync(maliciousUser.password, res.body.password)).to.be.true;
           });
       });
     });
@@ -249,7 +259,8 @@ describe('Users Endpoints', function() {
 
   describe('Delete /api/users/:user_id', () => {
     context('Given no users', () => {
-      it('responds with 404', () => {
+      //this 401 is correct because there is no pw to compare with no users
+      it('responds with 401', () => {
         const userId = 123456;
         return supertest(app)
           .delete(`/api/users/${userId}`)
@@ -297,11 +308,7 @@ describe('Users Endpoints', function() {
     context('Given there are users in the database', () => {
       const testUsers = helpers.makeUsersArray();
 
-      beforeEach('insert users', () => {
-        return db
-          .into('highlow_users')
-          .insert(testUsers);
-      });
+      beforeEach('insert users', () => helpers.seedUsers(db, testUsers));
 
       it('responds with 204 and updates the user', () => {
         const idToUpdate = 2;
@@ -317,12 +324,13 @@ describe('Users Endpoints', function() {
         };
         return supertest(app)
           .patch(`/api/users/${idToUpdate}`)
-          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .set('Authorization', helpers.makeAuthHeader(testUsers[1]))
           .send(updatedUser)
           .expect(204)
           .then(res =>
             supertest(app)
-              .get(`/api/notes/${idToUpdate}`)
+              .get(`/api/users/${idToUpdate}`)
+              .set('Authorization', helpers.makeAuthHeader(testUsers[1]))
               .expect(expectedUser)  
           );
       });
@@ -362,7 +370,8 @@ describe('Users Endpoints', function() {
           .expect(204)
           .then(res => 
             supertest(app)
-              .get(`/api/notes/${idToUpdate}`)
+              .get(`/api/users/${idToUpdate}`)
+              .set('Authorization', helpers.makeAuthHeader(testUser))
               .expect(expectedUser)  
           );
       });

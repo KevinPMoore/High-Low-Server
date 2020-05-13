@@ -111,6 +111,7 @@ usersRouter
   });
 
 async function checkUserExists (req, res, next) {
+  console.log('test', req.params.user_id)
   try {
     const user = await UsersService.getUserById(
       req.app.get('db'),

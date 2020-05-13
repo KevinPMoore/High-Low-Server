@@ -3,6 +3,7 @@
 const AuthService = require('../auth/auth-service');
 
 function requireAuth(req, res, next) {
+  console.log('requireAuth function');
   const authToken = req.get('Authorization') || '';
 
   let bearerToken;
@@ -14,7 +15,8 @@ function requireAuth(req, res, next) {
 
   try {
     const payload = AuthService.verifyJwt(bearerToken);
-
+    console.log(payload);
+    
     AuthService.getUserWithId(
       req.app.get('db'),
       payload.user_id
