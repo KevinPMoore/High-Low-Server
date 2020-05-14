@@ -43,11 +43,11 @@ describe('Users Endpoints', function() {
           .expect(200)
           .expect( (res) => {
             let allPasswordsMatch = res.body.every((user, index) => {
-              return bcrypt.compareSync(testUsers[index].password, user.password)
-            })
-            expect(allPasswordsMatch).to.eql(true)
-            expect(res.body.length).to.eql(testUsers.length)
-          })
+              return bcrypt.compareSync(testUsers[index].password, user.password);
+            });
+            expect(allPasswordsMatch).to.eql(true);
+            expect(res.body.length).to.eql(testUsers.length);
+          });
       });
     });
 
@@ -100,12 +100,12 @@ describe('Users Endpoints', function() {
           .set('Authorization', helpers.makeAuthHeader(expectedUser))
           .expect(200)
           .expect( res => {
-            expect(res.body.id).to.eql(expectedUser.id)
-            expect(res.body.user_name).to.eql(expectedUser.user_name)
-            expect(res.body.bank).to.eql(expectedUser.bank)
-            expect(res.body.admin).to.eql(expectedUser.admin)
-            expect(bcrypt.compareSync(expectedUser.password, res.body.password)).to.be.true
-        })
+            expect(res.body.id).to.eql(expectedUser.id);
+            expect(res.body.user_name).to.eql(expectedUser.user_name);
+            expect(res.body.bank).to.eql(expectedUser.bank);
+            expect(res.body.admin).to.eql(expectedUser.admin);
+            expect(bcrypt.compareSync(expectedUser.password, res.body.password)).to.be.true;
+          });
       });
     });
 
@@ -259,13 +259,12 @@ describe('Users Endpoints', function() {
 
   describe('Delete /api/users/:user_id', () => {
     context('Given no users', () => {
-      //this 401 is correct because there is no pw to compare with no users
-      it('responds with 401', () => {
+      it('responds with 401 because an auth token cannot match', () => {
         const userId = 123456;
         return supertest(app)
           .delete(`/api/users/${userId}`)
           .set('Authorization', helpers.makeAuthHeader(testUser))
-          .expect(404, { error: { message: 'User does not exist' } });
+          .expect(401, { error: 'Unauthorized request' });
       });
     });
 
@@ -296,12 +295,12 @@ describe('Users Endpoints', function() {
 
   describe('PATCH /api/users/:user_id', () => {
     context('Given no users', () => {
-      it('responds with 404', () => {
+      it('responds with 401 because an auth token cannot match', () => {
         const userId = 123456;
         return supertest(app)
           .delete(`/api/users/${userId}`)
           .set('Authorization', helpers.makeAuthHeader(testUser))
-          .expect(404, { error: { message: 'User does not exist'} });
+          .expect(401, { error: 'Unauthorized request' });
       });
     });
 
@@ -327,12 +326,17 @@ describe('Users Endpoints', function() {
           .set('Authorization', helpers.makeAuthHeader(testUsers[1]))
           .send(updatedUser)
           .expect(204)
-          .then(res =>
+          .then(res => {
             supertest(app)
               .get(`/api/users/${idToUpdate}`)
               .set('Authorization', helpers.makeAuthHeader(testUsers[1]))
-              .expect(expectedUser)  
-          );
+              .expect(res => {
+                expect(res.body.id).to.eql(expectedUser.id);
+                expect(res.body.user_name).to.eql(expectedUser.user_name);
+                expect(res.body.bank).to.eql(expectedUser.bank);
+                expect(res.body.admin).to.eql(expectedUser.admin);
+              }); 
+            });
       });
 
       it('responds with 400 when non-required fields are supplied', () => {
@@ -368,12 +372,17 @@ describe('Users Endpoints', function() {
             fieldToIgnore: 'should not be in the GET response'
           })
           .expect(204)
-          .then(res => 
+          .then(res => {
             supertest(app)
               .get(`/api/users/${idToUpdate}`)
               .set('Authorization', helpers.makeAuthHeader(testUser))
-              .expect(expectedUser)  
-          );
+              .expect(res => {
+                expect(res.body.id).to.eql(expectedUser.id);
+                expect(res.body.user_name).to.eql(expectedUser.user_name);
+                expect(res.body.bank).to.eql(expectedUser.bank);
+                expect(res.body.admin).to.eql(expectedUser.admin);
+              });
+          });
       });
     });
   });
