@@ -23,7 +23,6 @@ app.use(helmet());
 app.use('/api/users/', usersRouter);
 app.use('/api/auth/', authRouter);
 
-//this needs to be the last piece of middleware
 app.use(function errorHandler(error, req, res, next) {
   let response;
   if (NODE_ENV === 'production') {

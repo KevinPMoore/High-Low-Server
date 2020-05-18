@@ -1,26 +1,48 @@
-# Express Boilerplate!
+# High-Low
 
-This is a boilerplate project used for starting new projects!
+## Summary
+High-Low is a lightweight game where users place wagers to earn points.  A randomly generated number between 1 and 100 inclusive are displayed and users bet on the next number being either higher or lower.  Successful wagers accrue points while points are deducted for incorrect guesses.  User are able to sign up for an account to save their progress between sessions.
 
-## Set up
+## Live link
+[https://high-low.now.sh/](https://high-low.now.sh/)
 
-Complete the following steps to start a new project (NEW-PROJECT-NAME):
+## Screenshots
+Screenshots taken from the mobile client.
 
-1. Clone this repository to your local machine `git clone BOILERPLATE-URL NEW-PROJECTS-NAME`
-2. `cd` into the cloned repository
-3. Make a fresh start of the git history for this project with `rm -rf .git && git init`
-4. Install the node dependencies `npm install`
-5. Move the example Environment file to `.env` that will be ignored by git and read by the express server `mv example.env .env`
-6. Edit the contents of the `package.json` to use NEW-PROJECT-NAME instead of `"name": "express-boilerplate",`
+### Landing Page
+![a screenshot of the landing page](./images/LandingSS.png)
 
-## Scripts
+### Login Page
+![a screenshot of a login page](./images/LoginSS.png)
 
-Start the application `npm start`
+### Game Page
+![a screenshot of the game page](./images/GameSS.png)
 
-Start nodemon for the application `npm run dev`
+### Account Page
+![a screenshot of the account page](./images/AccountSS.png)
 
-Run the tests `npm test`
+## API documentation
+### GET api/users
+Returns a list of all users.  An example user is below.
+![a screenshot of a user object from the API](./images/APIUserSS.png)
 
-## Deploying
+### POST api/users
+Adds a user to the database.  The 'user_name' and 'password' keys are required while bank and admin are set to 100 and false by default.  The password is hashed on insertion into the database.
 
-When your new project is ready for deployment, add a new Heroku application with `heroku create`. This will make a new git remote called "heroku" and you can then `npm run deploy` which will push to this remote's master branch.
+### GET api/users/:user_id
+Returns the user with the 'user_id' in the search parameter.  This requires an authorized bearer token.
+
+### PATCH api/users/:user_id
+Changes the user with the 'user_id' in the search parameter.  This is only used in the client to update the 'bank' key.  This requires an authorized bearer token.
+
+### DELETE api/users/:user_id
+Removes the user with the 'user_id' in the search parameter from the database.  This requires an authorized bearer token.
+
+### POST api/auth/login
+Generates an authToken and user object when provided with valid login credentials.  These are used to access protected endpoints.  An example is below.
+![a screenshot of the user and authToken from the API](./images/APIAuthSS.png)
+
+## Technologies used
+The front end of this project was built using React and styled with vanilla CSS.
+The back end was built with Node and Express while the database uses Postgresql.  The database is connected to the API through the use of Knex.
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
