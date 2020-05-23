@@ -5,6 +5,7 @@ High-Low is a lightweight game where users place wagers to earn points.  A rando
 
 ## Live link
 [https://high-low.now.sh/](https://high-low.now.sh/)
+To demo the application you can log in with the user name 'TestUser' and password 'D4m0Pass!'
 
 ## Screenshots
 Screenshots taken from the mobile client.
