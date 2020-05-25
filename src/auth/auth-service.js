@@ -4,30 +4,36 @@ const jwt = require('jsonwebtoken');
 const config = require('../config');
 
 const AuthService = {
+  //Fetches a specific user based on the id provided
   getUserWithId(db, id) {
     return db('highlow_users')
       .where({ id })
       .first();
   },
+  //Fetches a specific user based on the user_name provided, used for login
   getUserWithUserName(db, user_name) {
     return db('highlow_users')
       .where({ user_name })
       .first();
   },
+  //Determines if a password string equals the hashed string in the database.  Returns a boolean value
   comparePasswords(password, hash) {
-    return bcrypt.compare(password, hash)
+    return bcrypt.compare(password, hash);
   },
+  //Creates a JWT and returns it in the payload
   createJwt(subject, payload) {
     return jwt.sign(payload, config.JWT_SECRET, {
       subject,
       algorithm: 'HS256',
     });
   },
+  //Checks the provided token against the JWT_SECRET
   verifyJwt(token) {
     return jwt.verify(token, config.JWT_SECRET, {
       algorithms: ['HS256'],
     });
   },
+  //Splits the string of the provided token at the ':'
   parseBasicToken(token) {
     return Buffer
       .from(token, 'base64')

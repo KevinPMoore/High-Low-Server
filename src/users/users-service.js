@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const REGEX_UPPER_LOWER_NUMBER_SPECIAL = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&])[\S]+/;
 
 const UsersService = {
+  //Returns all users
   getAllUsers(db) {
     return db
       .from('highlow_users AS hl')
@@ -16,17 +17,20 @@ const UsersService = {
         'hl.administrator'
       );
   },
+  //Returns a specific user from all users based on id
   getUserById(db, id) {
     return UsersService.getAllUsers(db)
       .where('hl.id', id)
       .first();
   },
+  //Returns the first user with a provided name, user names are validated for uniqueness elsewhere
   hasUserWithUserName(db, user_name) {
     return db('highlow_users')
       .where({ user_name })
       .first()
       .then(user => !!user);
   },
+  //Inserts a new user into the database
   insertUser(db, newUser) {
     return db
       .insert(newUser)
@@ -34,16 +38,19 @@ const UsersService = {
       .returning('*')
       .then(([user]) => user);
   },
+  //Removes a user from the database based on id
   deleteUser(db, id) {
     return db('highlow_users')
       .where({ id })
       .delete();
   },
+  //Updates fields for a user specified by id, used to update bank for the client side
   updateUser(db, id, newUserFields) {
     return db('highlow_users')
       .where({ id })
       .update(newUserFields);
   },
+  //Checks a provided password against validation criteria
   validatePassword(password) {
     if (password.length < 8) {
       return 'Password must be longer than 8 characters';
@@ -59,9 +66,11 @@ const UsersService = {
     }
     return null;
   },
+  //Replaces the provided password with a hashed version, used upon insertion of a new user
   hashPassword(password) {
     return bcrypt.hash(password, 12);
   },
+  //Returns the user as an XSS sanitized object
   serializeUser(user) {
     return {
       id: user.id,

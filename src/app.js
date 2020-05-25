@@ -16,13 +16,16 @@ const morganOption = (NODE_ENV === 'production')
   ? 'tiny'
   : 'common';
 
+//Middleware
 app.use(morgan(morganOption));
 app.use(cors({ origin: CLIENT_ORIGIN }));
 app.use(helmet());
 
+//Endpoints
 app.use('/api/users/', usersRouter);
 app.use('/api/auth/', authRouter);
 
+//Error handler, must be the last piece of middleware
 app.use(function errorHandler(error, req, res, next) {
   let response;
   if (NODE_ENV === 'production') {
